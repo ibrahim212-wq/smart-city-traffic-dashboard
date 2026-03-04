@@ -12,15 +12,11 @@ export default function LiveAIPanel({ intersections }: LiveAIPanelProps) {
         <div
             className="animate-slide-in-left"
             style={{
-                position: "absolute",
-                top: "80px",
-                left: "16px",
                 width: "350px",
-                maxHeight: "calc(100vh - 160px)",
                 display: "flex",
                 flexDirection: "column",
                 gap: "12px",
-                zIndex: 100,
+                height: "100%",
             }}
         >
             {/* Header */}

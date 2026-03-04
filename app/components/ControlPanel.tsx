@@ -76,11 +76,7 @@ export default function ControlPanel({ onAction }: ControlPanelProps) {
         <div
             className="glass-panel animate-slide-in-left"
             style={{
-                position: "absolute",
-                bottom: "24px",
-                left: "16px",
                 padding: "20px",
-                zIndex: 100,
                 minWidth: "280px",
             }}
         >

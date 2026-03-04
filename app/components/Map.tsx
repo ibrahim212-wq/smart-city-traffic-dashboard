@@ -6,15 +6,13 @@ import { IntersectionData, RouteData } from "../hooks/useTrafficData";
 
 const RIYADH_CENTER: [number, number] = [24.6853, 46.7029];
 
-const generateCars = () =>
-    Array.from({ length: 15 }, (_, i) => ({
-        id: i,
-        lat: 24.66 + Math.random() * 0.06,
-        lng: 46.68 + Math.random() * 0.05,
-        speed: 0.0001 + Math.random() * 0.0003,
-        dx: (Math.random() - 0.5) * 2,
-        dy: (Math.random() - 0.5) * 2,
-    }));
+// Math helper to interpolate between two [lat, lng] points
+function interpolatePoint(p1: [number, number], p2: [number, number], fraction: number): [number, number] {
+    return [
+        p1[0] + (p2[0] - p1[0]) * fraction,
+        p1[1] + (p2[1] - p1[1]) * fraction,
+    ];
+}
 
 interface MapViewProps {
     intersections?: IntersectionData[];
@@ -24,11 +22,11 @@ interface MapViewProps {
 export default function MapView({ intersections = [], routes = [] }: MapViewProps) {
     const mapRef = useRef<LeafletMap | null>(null);
     const mapContainerRef = useRef<HTMLDivElement>(null);
-    const [, setCars] = useState(generateCars());
 
     // Web maps state refs to allow hot swap on updates
     const markersRef = useRef<Marker[]>([]);
     const polylinesRef = useRef<Polyline[]>([]);
+    const carsRef = useRef<Marker[]>([]);
     const leafletLibRef = useRef<any>(null);
 
     // Initial Map Setup
@@ -62,42 +60,6 @@ export default function MapView({ intersections = [], routes = [] }: MapViewProp
             }).addTo(map);
 
             mapRef.current = map;
-
-            // Add background dummy car markers
-            const carMarkers: L.Marker[] = [];
-            generateCars().forEach((car) => {
-                const carIcon = L.divIcon({
-                    className: "car-marker",
-                    html: `<div style="font-size:16px;filter:drop-shadow(0 0 4px rgba(0,212,255,0.8));">🚗</div>`,
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 10],
-                });
-                const marker = L.marker([car.lat, car.lng], { icon: carIcon, interactive: false }).addTo(map);
-                carMarkers.push(marker);
-            });
-
-            // Animate cars
-            let animCars = generateCars();
-            const animInterval = setInterval(() => {
-                animCars = animCars.map((car, i) => {
-                    const newLat = car.lat + car.dy * car.speed;
-                    const newLng = car.lng + car.dx * car.speed;
-                    const clampedLat = Math.max(24.65, Math.min(24.73, newLat));
-                    const clampedLng = Math.max(24.67, Math.min(46.75, newLng));
-                    if (newLat !== clampedLat) car = { ...car, dy: -car.dy };
-                    if (newLng !== clampedLng) car = { ...car, dx: -car.dx };
-                    if (carMarkers[i]) {
-                        carMarkers[i].setLatLng([clampedLat, car.lng + car.dx * car.speed]);
-                    }
-                    return { ...car, lat: clampedLat, lng: car.lng + car.dx * car.speed };
-                });
-                setCars([...animCars]);
-            }, 500);
-
-            return () => {
-                clearInterval(animInterval);
-                carMarkers.forEach((m) => m.remove());
-            };
         });
 
         return () => {
@@ -126,8 +88,8 @@ export default function MapView({ intersections = [], routes = [] }: MapViewProp
             // Outer Line (Glowing)
             const outer = L.polyline(route.path, {
                 color,
-                weight: 14,
-                opacity: 0.25,
+                weight: 12,
+                opacity: 0.35,
                 lineCap: "round",
                 lineJoin: "round",
                 interactive: false
@@ -137,7 +99,7 @@ export default function MapView({ intersections = [], routes = [] }: MapViewProp
             const inner = L.polyline(route.path, {
                 color,
                 weight: 4,
-                opacity: 1.0,
+                opacity: 0.9,
                 lineCap: "round",
                 lineJoin: "round",
             }).addTo(map).bindTooltip(`Route Congestion: ${route.congestion}`, { sticky: true });
@@ -145,6 +107,80 @@ export default function MapView({ intersections = [], routes = [] }: MapViewProp
             polylinesRef.current.push(outer, inner);
         });
     }, [routes]);
+
+    // Effect for Cars Visualization (Snapped to Routes)
+    useEffect(() => {
+        if (!mapRef.current || !leafletLibRef.current) return;
+        const L = leafletLibRef.current;
+        const map = mapRef.current;
+
+        carsRef.current.forEach(c => c.remove());
+        carsRef.current = [];
+
+        routes.forEach(route => {
+            if (route.path.length < 2) return;
+
+            // Logic determines if the route ends at a Red or Green intersection bounds to simulate queue or flow
+            const destCoord = route.path[route.path.length - 1];
+
+            // Find matching intersection closest to route endpoint to dictate car logic
+            const matchedIntersection = intersections.find(i =>
+                Math.abs(i.lat - destCoord[0]) < 0.005 &&
+                Math.abs(i.lng - destCoord[1]) < 0.005
+            );
+
+            const isStoppedStack = matchedIntersection?.light_state.toLowerCase() === "red";
+            const numCars = isStoppedStack ? Math.floor(6 + Math.random() * 4) : 4; // Dense cluster on red, scattered on green/none
+
+            const carIcon = L.divIcon({
+                className: "car-marker",
+                html: `<div style="font-size:14px;filter:drop-shadow(0 0 5px rgba(255,255,255,0.8)); transform: rotate(${Math.random() * 20 - 10}deg);">🚘</div>`,
+                iconSize: [18, 18],
+                iconAnchor: [9, 9],
+            });
+
+            for (let i = 0; i < numCars; i++) {
+                let fraction;
+                if (isStoppedStack) {
+                    // Stack heavily at the end (0.85 to 0.99 fraction along the route path) to simulate red light jam
+                    fraction = 0.85 + (Math.random() * 0.14);
+                } else {
+                    // Distribute safely scattered along the path roughly evenly
+                    fraction = (i + 1) / (numCars + 1) + (Math.random() * 0.1 - 0.05);
+                }
+
+                fraction = Math.max(0, Math.min(1, fraction)); // Clamp 0-1
+
+                // Basic approach mapping fraction 0-1 across the entire multi-point path Array
+                const segmentsAndLengths = [];
+                let totalDist = 0;
+                for (let j = 0; j < route.path.length - 1; j++) {
+                    const p1 = route.path[j];
+                    const p2 = route.path[j + 1];
+                    const dist = Math.sqrt(Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2));
+                    segmentsAndLengths.push({ p1, p2, dist });
+                    totalDist += dist;
+                }
+
+                if (totalDist > 0) {
+                    const targetDist = totalDist * fraction;
+                    let currentDist = 0;
+                    for (const seg of segmentsAndLengths) {
+                        if (currentDist + seg.dist >= targetDist) {
+                            const remaining = targetDist - currentDist;
+                            const subFraction = remaining / seg.dist;
+                            const point = interpolatePoint(seg.p1, seg.p2, subFraction);
+
+                            const marker = L.marker(point, { icon: carIcon, interactive: false }).addTo(map);
+                            carsRef.current.push(marker);
+                            break;
+                        }
+                        currentDist += seg.dist;
+                    }
+                }
+            }
+        });
+    }, [routes, intersections]);
 
 
     // Effect for Intersections Visualization
@@ -171,7 +207,7 @@ export default function MapView({ intersections = [], routes = [] }: MapViewProp
                             position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
                             width:18px; height:18px; border-radius:50%;
                             background:${color}; border:2px solid rgba(255,255,255,0.9);
-                            box-shadow: 0 0 12px ${color}, 0 0 24px ${color};
+                            box-shadow: 0 0 16px ${color}, 0 0 32px ${color};
                             z-index:10;
                         "></div>
                         <div style="
@@ -184,21 +220,22 @@ export default function MapView({ intersections = [], routes = [] }: MapViewProp
                         <!-- Permanent Timer Tooltip Badge -->
                         <div style="
                              position: absolute;
-                             top: -12px;
-                             left: 22px;
+                             top: -18px;
+                             left: 20px;
                              background: rgba(10,20,40,0.95);
-                             border: 1px solid ${color}80;
+                             border: 1px solid ${color}BB;
                              border-radius: 12px;
-                             padding: 2px 8px;
+                             padding: 4px 10px;
                              color: white;
-                             font-size: 11px;
-                             font-weight: bold;
+                             font-size: 13px;
+                             font-weight: 800;
                              white-space: nowrap;
                              display: flex;
                              align-items: center;
-                             gap: 5px;
-                             box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+                             gap: 6px;
+                             box-shadow: 0 4px 16px rgba(0,0,0,0.8);
                              pointer-events: none;
+                             z-index: 20;
                         ">
                             ${emoji} ${inter.timer}s
                         </div>

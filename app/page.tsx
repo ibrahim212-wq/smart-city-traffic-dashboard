@@ -197,11 +197,30 @@ export default function DashboardPage() {
             activeRoute={activeRoute}
           />
 
-          {/* Left panel: Live AI Traffic Controls */}
-          <LiveAIPanel intersections={intersections} />
+          {/* Left Sidebar Stack */}
+          <div
+            style={{
+              position: "absolute",
+              top: "80px",
+              bottom: "24px",
+              left: "16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+              zIndex: 100,
+              pointerEvents: "none",
+            }}
+          >
+            {/* Live AI Traffic Controls (takes remaining height via flex) */}
+            <div style={{ pointerEvents: "all", display: "flex", flex: 1, minHeight: 0 }}>
+              <LiveAIPanel intersections={intersections} />
+            </div>
 
-          {/* Bottom-left: Control Panel */}
-          <ControlPanel onAction={handleControlAction} />
+            {/* Bottom-left: Control Panel */}
+            <div style={{ pointerEvents: "all", flexShrink: 0 }}>
+              <ControlPanel onAction={handleControlAction} />
+            </div>
+          </div>
 
           {/* Bottom-right: System Logs (stays clear of sidebar) */}
           <SystemLogs externalEvent={logEvent} aiLogEntry={aiLogEntry} />
