@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-export interface TrafficData {
+export interface SystemStatus {
     intersection: string;
     gcn_prediction: number;
     prophet_trend: string;
@@ -8,11 +8,35 @@ export interface TrafficData {
     ai_log: string;
 }
 
+export interface IntersectionData {
+    id: string | number;
+    name: string;
+    lat: number;
+    lng: number;
+    light_state: "Green" | "Red" | "Yellow";
+    timer: number;
+    reasoning: string;
+}
+
+export interface RouteData {
+    id: string | number;
+    path: [number, number][];
+    congestion: "Low" | "Medium" | "High";
+}
+
+export interface TrafficData {
+    system_status: SystemStatus;
+    intersections: IntersectionData[];
+    routes: RouteData[];
+}
+
 export interface TrafficState {
     gcnPrediction?: number;
     prophetTrend?: string;
     activeRoute?: string;
     aiLogEntry?: { text: string; time: string };
+    intersections: IntersectionData[];
+    routes: RouteData[];
     isSyncing: boolean;
     error?: string;
 }
@@ -28,6 +52,8 @@ function getTime() {
 
 export function useTrafficData(): TrafficState {
     const [state, setState] = useState<TrafficState>({
+        intersections: [],
+        routes: [],
         isSyncing: true,
     });
 
@@ -51,10 +77,12 @@ export function useTrafficData(): TrafficState {
                 setState((prev) => ({
                     ...prev,
                     isSyncing: false,
-                    gcnPrediction: data.gcn_prediction,
-                    prophetTrend: data.prophet_trend,
-                    activeRoute: data.active_route,
-                    aiLogEntry: data.ai_log ? { text: data.ai_log, time: getTime() } : undefined,
+                    gcnPrediction: data.system_status.gcn_prediction,
+                    prophetTrend: data.system_status.prophet_trend,
+                    activeRoute: data.system_status.active_route,
+                    aiLogEntry: data.system_status.ai_log ? { text: data.system_status.ai_log, time: getTime() } : undefined,
+                    intersections: data.intersections || [],
+                    routes: data.routes || [],
                     error: undefined,
                 }));
             } catch (err: any) {

@@ -6,6 +6,7 @@ import AISidebar from "./components/AISidebar";
 import ControlPanel from "./components/ControlPanel";
 import SystemLogs from "./components/SystemLogs";
 import Header from "./components/Header";
+import LiveAIPanel from "./components/LiveAIPanel";
 import { useTrafficData } from "./hooks/useTrafficData";
 
 // Dynamically import Map to avoid SSR issues with Leaflet
@@ -44,7 +45,7 @@ const MapView = dynamic(() => import("./components/Map"), {
 
 export default function DashboardPage() {
   const [logEvent, setLogEvent] = useState<string | undefined>(undefined);
-  const { gcnPrediction, prophetTrend, activeRoute, aiLogEntry, isSyncing, error } = useTrafficData();
+  const { gcnPrediction, prophetTrend, activeRoute, aiLogEntry, intersections, routes, isSyncing, error } = useTrafficData();
 
   const handleControlAction = useCallback((action: string) => {
     setLogEvent(undefined);
@@ -62,7 +63,7 @@ export default function DashboardPage() {
       }}
     >
       {/* ── Full-screen Leaflet Map (background layer) ── */}
-      <MapView />
+      <MapView intersections={intersections} routes={routes} />
 
       {/* ── Dark gradient vignette overlay ── */}
       <div
@@ -195,6 +196,9 @@ export default function DashboardPage() {
             prophetTrend={prophetTrend}
             activeRoute={activeRoute}
           />
+
+          {/* Left panel: Live AI Traffic Controls */}
+          <LiveAIPanel intersections={intersections} />
 
           {/* Bottom-left: Control Panel */}
           <ControlPanel onAction={handleControlAction} />
