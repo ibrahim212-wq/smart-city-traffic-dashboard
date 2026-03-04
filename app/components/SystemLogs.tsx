@@ -78,13 +78,19 @@ function getTime() {
 
 interface SystemLogsProps {
     externalEvent?: string;
+    aiLogEntry?: { text: string; time: string };
 }
 
-export default function SystemLogs({ externalEvent }: SystemLogsProps) {
+export default function SystemLogs({ externalEvent, aiLogEntry }: SystemLogsProps) {
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [isMinimized, setIsMinimized] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const idRef = useRef(0);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const addLog = (entry: Omit<LogEntry, "id" | "time">) => {
         setLogs((prev) => {
@@ -139,6 +145,27 @@ export default function SystemLogs({ externalEvent }: SystemLogsProps) {
             setTimeout(() => addLog(log), i * 600);
         });
     }, [externalEvent]);
+
+    // Handle incoming AI log from the backend
+    useEffect(() => {
+        if (!aiLogEntry) return;
+
+        // Prevent adding the exact same log multiple times if the API returns the same data
+        setLogs((prev) => {
+            const lastLog = prev[prev.length - 1];
+            if (lastLog && lastLog.message === aiLogEntry.text) {
+                return prev; // skip duplicate
+            }
+
+            const newLog: LogEntry = {
+                id: ++idRef.current,
+                time: aiLogEntry.time,
+                type: "success",
+                message: aiLogEntry.text
+            };
+            return [...prev.slice(-40), newLog];
+        });
+    }, [aiLogEntry]);
 
     // Auto-scroll
     useEffect(() => {
@@ -214,7 +241,7 @@ export default function SystemLogs({ externalEvent }: SystemLogsProps) {
                         </div>
                     ))}
                     <div style={{ display: "flex", gap: "8px", alignItems: "baseline", opacity: 0.6 }}>
-                        <span style={{ color: "#334155", fontSize: "9.5px" }}>{getTime()}</span>
+                        <span style={{ color: "#334155", fontSize: "9.5px" }}>{isMounted ? getTime() : "--:--:--"}</span>
                         <span style={{ color: "#00d4ff", fontSize: "9.5px" }}>{">"}</span>
                         <span className="terminal-cursor" style={{ color: "#00d4ff" }}>█</span>
                     </div>

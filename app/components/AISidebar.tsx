@@ -29,46 +29,40 @@ const PROPHET_STATES = [
     { label: "Weekend Peak", sublabel: "Moderate Load Pattern", color: "#ffaa00", icon: "🟡" },
 ];
 
-export default function AISidebar() {
-    const [congIdx, setCongIdx] = useState(2);
-    const [routeIdx, setRouteIdx] = useState(0);
-    const [prophetIdx, setProphetIdx] = useState(0);
+export interface AISidebarProps {
+    gcnPrediction?: number; // 0 to 100
+    prophetTrend?: string;
+    activeRoute?: string;
+}
+
+export default function AISidebar({ gcnPrediction, prophetTrend, activeRoute }: AISidebarProps) {
     const [animWidth, setAnimWidth] = useState(0);
     const [gcnConfidence, setGcnConfidence] = useState(87);
     const [lastUpdate, setLastUpdate] = useState("Just now");
 
+    // Map the incoming numeric gcnPrediction to a congestion level
+    const getCongestionLevel = (val: number) => {
+        if (val < 40) return CONGESTION_LEVELS[0]; // Low
+        if (val < 70) return CONGESTION_LEVELS[1]; // Moderate
+        if (val < 85) return CONGESTION_LEVELS[2]; // High
+        return CONGESTION_LEVELS[3]; // Critical
+    };
+
+    // Current values derived from props (or defaults if missing)
+    const currentPrediction = gcnPrediction ?? 0;
+    const cong = getCongestionLevel(currentPrediction);
+
+    const prophet = PROPHET_STATES.find(p => p.label.toLowerCase() === prophetTrend?.toLowerCase()) || PROPHET_STATES[1];
+
+    const currentRoute = activeRoute || ROUTE_OPTIONS[0];
+
     useEffect(() => {
-        // Animate progress bar on mount
-        const t = setTimeout(() => setAnimWidth(CONGESTION_LEVELS[congIdx].value), 300);
+        // Animate progress bar when prediction changes
+        setAnimWidth(0);
+        const t = setTimeout(() => setAnimWidth(currentPrediction), 50);
+        setLastUpdate("Just now");
         return () => clearTimeout(t);
-    }, [congIdx]);
-
-    useEffect(() => {
-        // Cycle through data periodically
-        const interval = setInterval(() => {
-            setCongIdx((i) => {
-                const next = Math.floor(Math.random() * CONGESTION_LEVELS.length);
-                setAnimWidth(0);
-                setTimeout(() => setAnimWidth(CONGESTION_LEVELS[next].value), 50);
-                return next;
-            });
-            setRouteIdx((i) => (i + 1) % ROUTE_OPTIONS.length);
-            setGcnConfidence(75 + Math.floor(Math.random() * 20));
-            setLastUpdate("Just now");
-        }, 8000);
-
-        const prophetInterval = setInterval(() => {
-            setProphetIdx((i) => (i + 1) % PROPHET_STATES.length);
-        }, 12000);
-
-        return () => {
-            clearInterval(interval);
-            clearInterval(prophetInterval);
-        };
-    }, []);
-
-    const cong = CONGESTION_LEVELS[congIdx];
-    const prophet = PROPHET_STATES[prophetIdx];
+    }, [currentPrediction]);
 
     return (
         <div
@@ -157,13 +151,13 @@ export default function AISidebar() {
 
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#475569" }}>
                     <span>0%</span>
-                    <span style={{ color: cong.color, fontWeight: 600 }}>{cong.value}%</span>
+                    <span style={{ color: cong.color, fontWeight: 600 }}>{currentPrediction}%</span>
                     <span>100%</span>
                 </div>
 
                 {/* Mini bar chart */}
                 <div style={{ display: "flex", gap: "4px", marginTop: "14px", alignItems: "flex-end", height: "36px" }}>
-                    {[35, 55, 48, 72, 68, 82, cong.value, 70, 60, 50, 45, 55].map((v, i) => (
+                    {[35, 55, 48, 72, 68, 82, currentPrediction, 70, 60, 50, 45, 55].map((v, i) => (
                         <div
                             key={i}
                             style={{
@@ -286,14 +280,14 @@ export default function AISidebar() {
                     <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
                         <ChevronRight size={14} color="#00d4ff" style={{ marginTop: "2px", flexShrink: 0 }} />
                         <div style={{ fontSize: "12px", color: "#cbd5e1", lineHeight: 1.5, transition: "all 0.5s ease" }}>
-                            {ROUTE_OPTIONS[routeIdx]}
+                            {currentRoute}
                         </div>
                     </div>
                     <div style={{ marginTop: "10px", display: "flex", gap: "8px" }}>
                         {[
-                            { label: "ETA", value: `${8 + routeIdx * 2} min` },
-                            { label: "Dist", value: `${(4.2 + routeIdx * 0.8).toFixed(1)} km` },
-                            { label: "Saved", value: `${(1.5 + routeIdx * 0.5).toFixed(1)} min` },
+                            { label: "ETA", value: `12 min` },
+                            { label: "Dist", value: `4.5 km` },
+                            { label: "Saved", value: `2.1 min` },
                         ].map((stat) => (
                             <div
                                 key={stat.label}

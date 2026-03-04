@@ -6,6 +6,7 @@ import AISidebar from "./components/AISidebar";
 import ControlPanel from "./components/ControlPanel";
 import SystemLogs from "./components/SystemLogs";
 import Header from "./components/Header";
+import { useTrafficData } from "./hooks/useTrafficData";
 
 // Dynamically import Map to avoid SSR issues with Leaflet
 const MapView = dynamic(() => import("./components/Map"), {
@@ -43,6 +44,7 @@ const MapView = dynamic(() => import("./components/Map"), {
 
 export default function DashboardPage() {
   const [logEvent, setLogEvent] = useState<string | undefined>(undefined);
+  const { gcnPrediction, prophetTrend, activeRoute, aiLogEntry, isSyncing, error } = useTrafficData();
 
   const handleControlAction = useCallback((action: string) => {
     setLogEvent(undefined);
@@ -116,14 +118,89 @@ export default function DashboardPage() {
           {/* Header top bar */}
           <Header />
 
+          {/* Syncing AI Indicator */}
+          {isSyncing && (
+            <div
+              style={{
+                position: "absolute",
+                top: "80px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "rgba(0, 212, 255, 0.15)",
+                border: "1px solid rgba(0, 212, 255, 0.3)",
+                padding: "8px 16px",
+                borderRadius: "20px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                color: "#00d4ff",
+                fontSize: "12px",
+                fontWeight: 600,
+                backdropFilter: "blur(4px)",
+                animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                zIndex: 100,
+              }}
+            >
+              <div
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  background: "#00d4ff",
+                  boxShadow: "0 0 8px #00d4ff",
+                }}
+              />
+              Syncing AI...
+            </div>
+          )}
+
+          {/* Error Indicator */}
+          {error && (
+            <div
+              style={{
+                position: "absolute",
+                top: "80px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "rgba(255, 68, 68, 0.15)",
+                border: "1px solid rgba(255, 68, 68, 0.3)",
+                padding: "8px 16px",
+                borderRadius: "20px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                color: "#ff4444",
+                fontSize: "12px",
+                fontWeight: 600,
+                backdropFilter: "blur(4px)",
+                zIndex: 100,
+              }}
+            >
+              <div
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  background: "#ff4444",
+                  boxShadow: "0 0 8px #ff4444",
+                }}
+              />
+              Connection Lost - Retrying
+            </div>
+          )}
+
           {/* Right sidebar: AI Insights */}
-          <AISidebar />
+          <AISidebar
+            gcnPrediction={gcnPrediction}
+            prophetTrend={prophetTrend}
+            activeRoute={activeRoute}
+          />
 
           {/* Bottom-left: Control Panel */}
           <ControlPanel onAction={handleControlAction} />
 
           {/* Bottom-right: System Logs (stays clear of sidebar) */}
-          <SystemLogs externalEvent={logEvent} />
+          <SystemLogs externalEvent={logEvent} aiLogEntry={aiLogEntry} />
         </div>
       </div>
 
