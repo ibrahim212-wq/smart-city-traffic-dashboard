@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 
 interface TrafficLightProps {
   currentPhase: number;
@@ -11,23 +11,23 @@ export default function TrafficLight({ currentPhase }: TrafficLightProps) {
     return "inactive";
   };
 
-  const lightVariants = {
+  const lightVariants: Variants = {
     active: {
       scale: 1.1,
       boxShadow: "0 0 20px currentColor, 0 0 40px currentColor",
       transition: {
         duration: 0.3,
-        ease: "easeInOut"
-      }
+        ease: "easeInOut" as const,
+      },
     },
     inactive: {
       scale: 1,
       boxShadow: "0 0 5px rgba(255,255,255,0.1)",
       transition: {
         duration: 0.3,
-        ease: "easeInOut"
-      }
-    }
+        ease: "easeInOut" as const,
+      },
+    },
   };
 
   return (
