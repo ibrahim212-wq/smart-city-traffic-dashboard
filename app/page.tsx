@@ -7,6 +7,7 @@ import ControlPanel from "./components/ControlPanel";
 import SystemLogs from "./components/SystemLogs";
 import Header from "./components/Header";
 import LiveAIPanel from "./components/LiveAIPanel";
+import TrafficVisualization from "./components/TrafficVisualization";
 import { useTrafficData } from "./hooks/useTrafficData";
 
 // Dynamically import Map to avoid SSR issues with Leaflet
@@ -209,8 +210,14 @@ export default function DashboardPage() {
               gap: "16px",
               zIndex: 100,
               pointerEvents: "none",
+              width: "420px",
             }}
           >
+            {/* Traffic Visualization (prominent position) */}
+            <div style={{ pointerEvents: "all", flexShrink: 0 }}>
+              <TrafficVisualization />
+            </div>
+
             {/* Live AI Traffic Controls (takes remaining height via flex) */}
             <div style={{ pointerEvents: "all", display: "flex", flex: 1, minHeight: 0 }}>
               <LiveAIPanel intersections={intersections} />
