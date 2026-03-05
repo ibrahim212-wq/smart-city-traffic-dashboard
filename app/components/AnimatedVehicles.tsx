@@ -23,7 +23,7 @@ function Vehicle({ index, isTrafficLightGreen, totalVehicles }: VehicleProps) {
     }
   };
 
-  const vehicleColor = totalVehicles > 1000 ? "#ff6b6b" : "#4ecdc4";
+  const vehicleColor = "#FFD700"; // Bright gold color for high visibility
   
   return (
     <motion.div
@@ -46,29 +46,29 @@ function Vehicle({ index, isTrafficLightGreen, totalVehicles }: VehicleProps) {
       }}
       style={{
         position: "absolute",
-        width: "20px",
-        height: "12px",
-        background: `linear-gradient(90deg, ${vehicleColor} 0%, ${vehicleColor}dd 100%)`,
+        width: "24px",
+        height: "16px",
+        background: `linear-gradient(135deg, ${vehicleColor} 0%, #FFA500 100%)`,
         borderRadius: "4px",
-        border: "1px solid rgba(255, 255, 255, 0.3)",
-        boxShadow: `0 2px 8px ${vehicleColor}66`,
+        border: "2px solid rgba(255, 255, 255, 0.8)",
+        boxShadow: `0 4px 12px ${vehicleColor}88, 0 2px 4px rgba(0,0,0,0.3)`,
         top: "50%",
         transform: "translateY(-50%)",
-        zIndex: 5 - index, // Earlier vehicles appear behind later ones
+        zIndex: 20, // High z-index to appear on top
       }}
     >
       {/* Headlights */}
       <div
         style={{
           position: "absolute",
-          right: "-2px",
+          right: "-3px",
           top: "50%",
           transform: "translateY(-50%)",
-          width: "4px",
-          height: "6px",
-          background: "rgba(255, 255, 200, 0.8)",
+          width: "6px",
+          height: "8px",
+          background: "rgba(255, 255, 200, 1)",
           borderRadius: "50%",
-          boxShadow: "0 0 4px rgba(255, 255, 200, 0.6)",
+          boxShadow: "0 0 12px rgba(255, 255, 200, 0.9), 0 0 6px rgba(255, 255, 200, 0.6)",
         }}
       />
     </motion.div>

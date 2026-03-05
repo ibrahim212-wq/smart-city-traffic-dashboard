@@ -191,46 +191,64 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Right sidebar: AI Insights */}
-          <AISidebar
-            gcnPrediction={gcnPrediction}
-            prophetTrend={prophetTrend}
-            activeRoute={activeRoute}
-          />
+          {/* Central Traffic Visualization - Main Focal Point */}
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "800px",
+              maxWidth: "90vw",
+              zIndex: 50,
+            }}
+          >
+            <TrafficVisualization />
+          </div>
 
-          {/* Left Sidebar Stack */}
+          {/* Right sidebar: AI Insights - moved higher to avoid overlap */}
           <div
             style={{
               position: "absolute",
               top: "80px",
-              bottom: "24px",
-              left: "16px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px",
-              zIndex: 100,
-              pointerEvents: "none",
-              width: "420px",
+              right: "16px",
+              width: "320px",
+              maxHeight: "40vh",
+              zIndex: 40,
             }}
           >
-            {/* Traffic Visualization (prominent position) */}
-            <div style={{ pointerEvents: "all", flexShrink: 0 }}>
-              <TrafficVisualization />
-            </div>
-
-            {/* Live AI Traffic Controls (takes remaining height via flex) */}
-            <div style={{ pointerEvents: "all", display: "flex", flex: 1, minHeight: 0 }}>
-              <LiveAIPanel intersections={intersections} />
-            </div>
-
-            {/* Bottom-left: Control Panel */}
-            <div style={{ pointerEvents: "all", flexShrink: 0 }}>
-              <ControlPanel onAction={handleControlAction} />
-            </div>
+            <AISidebar
+              gcnPrediction={gcnPrediction}
+              prophetTrend={prophetTrend}
+              activeRoute={activeRoute}
+            />
           </div>
 
-          {/* Bottom-right: System Logs (stays clear of sidebar) */}
-          <SystemLogs externalEvent={logEvent} aiLogEntry={aiLogEntry} />
+          {/* Bottom Left: Control Panel */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "24px",
+              left: "24px",
+              zIndex: 40,
+            }}
+          >
+            <ControlPanel onAction={handleControlAction} />
+          </div>
+
+          {/* Bottom Right: System Logs - smaller and positioned to avoid overlap */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "24px",
+              right: "24px",
+              width: "400px",
+              maxWidth: "40vw",
+              zIndex: 40,
+            }}
+          >
+            <SystemLogs externalEvent={logEvent} aiLogEntry={aiLogEntry} />
+          </div>
         </div>
       </div>
 

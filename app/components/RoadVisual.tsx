@@ -17,7 +17,7 @@ export default function RoadVisual({ totalVehicles, isTrafficLightGreen, childre
       style={{
         position: "relative",
         width: "100%",
-        height: "120px",
+        height: "160px", // Increased from 120px for better visibility
         background: roadColor,
         border: "1px solid rgba(0, 212, 255, 0.3)",
         borderRadius: "8px",
@@ -32,7 +32,7 @@ export default function RoadVisual({ totalVehicles, isTrafficLightGreen, childre
           top: "50%",
           left: 0,
           right: 0,
-          height: "2px",
+          height: "4px", // Increased from 2px
           transform: "translateY(-50%)",
         }}
       >
@@ -42,10 +42,10 @@ export default function RoadVisual({ totalVehicles, isTrafficLightGreen, childre
             height: "100%",
             background: `repeating-linear-gradient(
               90deg,
-              rgba(255, 255, 255, 0.6) 0px,
-              rgba(255, 255, 255, 0.6) 20px,
-              transparent 20px,
-              transparent 40px
+              rgba(255, 255, 255, 0.8) 0px,
+              rgba(255, 255, 255, 0.8) 25px,
+              transparent 25px,
+              transparent 50px
             )`,
           }}
         />
@@ -58,9 +58,9 @@ export default function RoadVisual({ totalVehicles, isTrafficLightGreen, childre
           right: "100px",
           top: 0,
           bottom: 0,
-          width: "4px",
-          background: "rgba(255, 255, 255, 0.8)",
-          boxShadow: "0 0 10px rgba(255, 255, 255, 0.5)",
+          width: "6px", // Increased from 4px
+          background: "rgba(255, 255, 255, 0.9)",
+          boxShadow: "0 0 15px rgba(255, 255, 255, 0.6)",
         }}
       />
 
