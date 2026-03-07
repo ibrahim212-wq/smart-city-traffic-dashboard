@@ -35,9 +35,7 @@ body {
   background: #0a0e1a !important;
 }
 
-.leaflet-tile {
-  filter: brightness(0.4) saturate(0.3) hue-rotate(200deg) invert(1) !important;
-}
+/* CartoDB Dark Matter tiles are natively dark — no filter override needed */
 
 /* Glass morphism utility */
 .glass-panel {
