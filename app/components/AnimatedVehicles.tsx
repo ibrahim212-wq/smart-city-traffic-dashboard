@@ -27,6 +27,7 @@ function Vehicle({ index, isTrafficLightGreen, totalVehicles }: VehicleProps) {
   
   return (
     <motion.div
+      key={`vehicle-${index}`} // Stable key to prevent re-mounting
       animate={{
         x: `${getVehiclePosition()}%`,
         y: ["45%", "55%", "45%"], // Subtle vertical movement for realism

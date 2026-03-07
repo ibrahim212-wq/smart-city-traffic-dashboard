@@ -103,7 +103,13 @@ export default function TrafficVisualization() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       style={{
-        width: "100%",
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: "800px",
+        maxWidth: "90vw",
+        zIndex: 50,
         background: "rgba(10, 14, 26, 0.95)",
         border: "1px solid rgba(0, 212, 255, 0.3)",
         borderRadius: "12px",
